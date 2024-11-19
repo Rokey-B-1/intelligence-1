@@ -1,4 +1,4 @@
-# Rokey Bootcamp team B-1 intelligence-2 project
+# Rokey Bootcamp team B-1 intelligence-1 project
 
 ## Requirements
 
