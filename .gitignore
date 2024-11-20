@@ -1,0 +1,5 @@
+__pycache__
+.vscode
+.gradio
+Lecture_note
+*.jpg
