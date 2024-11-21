@@ -7,37 +7,42 @@ import requests
 from requests.auth import HTTPBasicAuth
 import os
 import cv2
+import random
 from collections import Counter
 
 ACCESS_KEY = "B6wJEdHqC111qCcAKVnKR7rzHYz18sCJ2ig0y2JW"  # 보안
 
-path = './Raspberry_PICO_images'  # 이미지 파일들의 경로
-image_list = os.listdir(path)  # 이미지 파일들의 파일명
+path = './test/test_img'  # 이미지 파일들의 경로
+image_list = os.listdir(path)  # path of test image
+random.shuffle(image_list)
 
-# 감지된 objects 개수가 9개인 파일 저장
-images_with_9_objects = []
+url_model_v1 = "https://suite-endpoint-api-apne2.superb-ai.com/endpoints/2746c0ac-eec0-467b-a6da-a7308968fc16/inference"
+# url_model_v2 = 
+
+TP = []
+FP = []
+
+TN = []
+FN = []
+
 
 for i, image in enumerate(image_list):
     img = f"{path}/{image}"
     img_binary = open(img, "rb").read()
     
     response = requests.post(
-        url="https://suite-endpoint-api-apne2.superb-ai.com/endpoints/2746c0ac-eec0-467b-a6da-a7308968fc16/inference",
+        url=url_model_v1,
         auth=HTTPBasicAuth("kdt2024_1-6", ACCESS_KEY),
         headers={"Content-Type": "image/jpeg"},
         data=img_binary,
     )
     
-    response_data = response.json()  # response json 데이터
+    response_data = response.json()  # response json data
     
-    print(f"{i}번 이미지 입니다. - {img}")
-    print(response_data)
-    
-    ### 감지된 objects 개수 확인 ###
     objects = response_data['objects']
     
     ### 감지된 객체가 9개의 이미지 체크 ###
-    if len(objects) == 9:  # 감지된 objects가 9개인 경우
+    if len(objects) == 9 :  # 감지된 objects가 9개인 경우 / predicting basis
         print(f"감지된 objects가 9개인 이미지: {image}")
         images_with_9_objects.append(image)
     

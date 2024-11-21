@@ -7,12 +7,13 @@ def capture_image():
     os.makedirs(save_directory, exist_ok=True)
 
     file_prefix = input("Enter a file prefix to use : ")
+    
     file_prefix = f'{file_prefix}_'
     print(file_prefix)
     
     image_count = 0
-    # cap = cv2.VideoCapture(0)   # WebCam
-    cap = cv2.VideoCapture(1)   # USB Camera
+    cap = cv2.VideoCapture(0)   # WebCam
+    # cap = cv2.VideoCapture(1)   # USB Camera
     
     while True:
         ret, frame = cap.read()
@@ -25,7 +26,7 @@ def capture_image():
         key = cv2.waitKey(1)
         if key == ord('c'):
             # 저장할 파일명 생성
-            file_name = f'{save_directory}/{image_count}.jpg'
+            file_name = f'{save_directory}/{file_prefix}{image_count}.jpg'
             
             # 조정된 이미지를 저장
             cv2.imwrite(file_name, resized_frame)
