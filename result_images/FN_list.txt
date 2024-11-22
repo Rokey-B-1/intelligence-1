@@ -1,0 +1,15 @@
+Total FN count: 13
+==============================
+./test/test_img_v1.0/70.jpg
+./test/test_img_v1.0/164.jpg
+./test/test_img_v1.0/170.jpg
+./test/test_img_v1.0/110.jpg
+./test/test_img_v1.0/158.jpg
+./test/test_img_v1.0/168.jpg
+./test/test_img_v1.0/292.jpg
+./test/test_img_v1.0/294.jpg
+./test/test_img_v1.0/140.jpg
+./test/test_img_v1.0/152.jpg
+./test/test_img_v1.0/290.jpg
+./test/test_img_v1.0/166.jpg
+./test/test_img_v1.0/142.jpg
