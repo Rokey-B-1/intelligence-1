@@ -1,10 +1,8 @@
-import time
 import serial
 import requests
 import numpy
 import cv2
 from io import BytesIO
-from requests.auth import HTTPBasicAuth
 from collections import Counter
 
 ser = serial.Serial("/dev/ttyACM0", 9600) # connect with Arduino
