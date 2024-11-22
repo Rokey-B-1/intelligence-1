@@ -3,3 +3,4 @@ __pycache__
 .gradio
 Lecture_note
 *.jpg
+result_images
