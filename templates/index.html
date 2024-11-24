@@ -1,42 +1,43 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Real-Time Object Detection</title>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js"></script>
+        <title>Flask 실시간 이미지</title>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
     </head>
     <body>
-        <h1>Real-Time Object Detection</h1>
-        <button id="startStopButton">Start Process</button>
-        <img id="stream" style="width: 600px; height: auto" />
+        <h1>실시간 이미지</h1>
+        <button id="toggle-btn">프로그램 시작</button>
+        <h2>실시간 이미지</h2>
+        <img id="live-image" src="" alt="Live Image" width="640" height="480" />
 
         <script>
-            const socket = io();
-            const button = document.getElementById("startStopButton");
+            $(document).ready(function () {
+                // WebSocket 연결 설정
+                var socket = io.connect(
+                    "http://" + document.domain + ":" + location.port
+                );
 
-            socket.on("connect", () => {
-                console.log("Connected to server");
-            });
+                // 서버로부터 이미지를 받았을 때 처리하는 이벤트 리스너
+                socket.on("new_image", function (data) {
+                    // base64로 받은 이미지를 img 태그의 src에 넣어주기
+                    $("#live-image").attr(
+                        "src",
+                        "data:image/jpeg;base64," + data.image
+                    );
+                });
 
-            // 버튼 클릭 이벤트
-            button.addEventListener("click", () => {
-                socket.emit("toggle_process"); // 서버로 'toggle_process' 이벤트 전송
-            });
-
-            // 프로세스 상태 업데이트
-            socket.on("process_status", (data) => {
-                if (data.status === "running") {
-                    button.textContent = "Stop Process";
-                } else {
-                    button.textContent = "Start Process";
-                }
-            });
-
-            // 서버로부터 이미지 업데이트 이벤트 수신
-            socket.on("image_update", (data) => {
-                const imgElement = document.getElementById("stream");
-                imgElement.src = `data:image/jpeg;base64,${data.image}`;
+                $("#toggle-btn").click(function () {
+                    $.post("/toggle_program", function (data) {
+                        if (data.status === "started") {
+                            $("#toggle-btn").text("프로그램 종료");
+                        } else {
+                            $("#toggle-btn").text("프로그램 시작");
+                        }
+                    });
+                });
             });
         </script>
     </body>
