@@ -1,34 +1,259 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Inspection</title>
-    <script>
-        async function fetchLatestImage() {
-            try {
-                const response = await fetch('/latest_image');
-                if (response.ok) {
-                    const data = await response.json();
-                    const imageBlob = new Blob([new Uint8Array(data.image.match(/.{1,2}/g).map(byte => parseInt(byte, 16)))], { type: 'image/jpeg' });
-                    const imageUrl = URL.createObjectURL(imageBlob);
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Product Inspection</title>
 
-                    document.getElementById('latestImage').src = imageUrl;
-                    document.getElementById('prediction').innerText = `Prediction: ${data.prediction}`;
-                    document.getElementById('productCode').innerText = `Product Code: ${data.product_code}`;
-                }
-            } catch (error) {
-                console.error('Error fetching the latest image:', error);
+        <!-- 구글 폰트 임베드 -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+            rel="stylesheet"
+        />
+
+        <!-- CSS -->
+        <!-- <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='css/style.css') }}"
+        /> -->
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+                font-family: "Roboto", sans-serif;
+                background-color: #f8f9fa;
+                color: #333;
             }
-        }
 
-        setInterval(fetchLatestImage, 1000); // 0.5초마다 최신 이미지 요청
-    </script>
-</head>
-<body>
-    <h1>Product Inspection</h1>
-    <img id="latestImage" alt="Latest Image" style="max-width: 400px; border: 1px solid #ccc;">
-    <p id="prediction">Prediction: N/A</p>
-    <p id="productCode">product code : N/A</p>
-    <a href="/inspection">Go to Inspection</a>
-    <a href="/statistics">Go to Statistics</a>
+            header {
+                margin: 0;
+                padding: 10px 70px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background-color: #ffffff;
+                border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+
+            #Logo {
+                font-size: 2.2rem;
+                font-weight: 700;
+                color: #2c3e50;
+            }
+
+            nav ul {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+
+            nav ul li {
+                margin: 0 10px;
+            }
+
+            nav ul li a {
+                text-decoration: none;
+                color: white;
+                font-size: 1rem;
+                font-weight: 500;
+                background-color: #4dd48e;
+                padding: 8px 20px;
+                border-radius: 6px;
+                transition: background-color 0.3s ease;
+            }
+
+            nav ul li a:hover {
+                background-color: #39b474;
+            }
+
+            h2 {
+                text-align: center;
+                font-size: 1.6rem;
+                margin: 35px auto;
+                color: #2c3e50;
+            }
+
+            main {
+                max-width: 1200px;
+                margin: 40px auto;
+                padding: 20px;
+                background: #fff;
+                border-radius: 10px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
+
+            #part-check {
+                background-color: rgb(246, 250, 255);
+                width: 90%;
+                height: 570px;
+                margin: 30px auto 55px auto;
+
+                display: flex;
+                justify-content: center;
+                align-items: center;
+
+                border-radius: 24px;
+                border: solid black 1px;
+            }
+
+            #part-check #image {
+                display: block;
+                width: 400px;
+                height: 500px;
+                margin-right: 60px;
+            }
+
+            #part-check #image img {
+                display: block;
+                width: 100%;
+                height: 100%;
+                border-radius: 12px;
+                object-fit: cover;
+                overflow: hidden;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
+
+            #part-check #classCounts {
+                width: 300px;
+                height: 420px;
+                margin-left: 60px;
+                border: rgba(89, 89, 89, 0.7) solid 1px;
+                border-radius: 12px;
+            }
+
+            #part-information {
+                width: 1100px;
+                height: 120px;
+                margin: 0 auto;
+
+                display: flex;
+                justify-content: space-around;
+                align-items: center;
+
+                border: rgba(0, 0, 0, 0.7) solid 1px;
+                border-radius: 12px;
+            }
+
+            #productCode {
+                width: 500px;
+                text-align: center;
+                padding-left: 20px;
+
+                font-family: "Roboto", sans-serif;
+                font-weight: 700;
+                font-style: normal;
+                font-size: 1.4rem;
+            }
+
+            #prediction {
+                width: 500px;
+                text-align: center;
+                padding-right: 20px;
+
+                font-family: "Roboto", sans-serif;
+                font-weight: 700;
+                font-style: normal;
+                font-size: 1.4rem;
+            }
+
+            footer {
+                text-align: center;
+                margin-top: 40px;
+                padding: 10px;
+                font-size: 0.9rem;
+                color: #aaa;
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <h1 id="Logo">Lorem</h1>
+            <nav>
+                <ul>
+                    <li><a href="/inspection">Inspection</a></li>
+                    <li><a href="/statistics">Statistics</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <h2>Raspberry PICO defect detector with YOLOv6</h2>
+
+        <main>
+            <div id="part-check">
+                <div id="image">
+                    <img
+                        id="latestImage"
+                        alt="Latest Image"
+                        style="max-width: 400px; border: 1px solid #ccc"
+                    />
+                </div>
+                <div id="classCounts">
+                    <h3>Class Counts:</h3>
+                    <!-- 클래스 카운트가 여기에 표시됩니다 -->
+                </div>
+            </div>
+
+            <div id="part-information">
+                <p id="productCode">Product Code: N/A</p>
+                <p id="prediction">Prediction: N/A</p>
+            </div>
+        </main>
+
+        <footer>&copy; 2024 Lorem Inc. All rights reserved.</footer>
+
+        <script>
+            async function fetchLatestImage() {
+                try {
+                    const response = await fetch("/latest_image");
+                    if (response.ok) {
+                        const data = await response.json();
+
+                        // 이미지 처리
+                        const imageBlob = new Blob(
+                            [
+                                new Uint8Array(
+                                    data.image
+                                        .match(/.{1,2}/g)
+                                        .map((byte) => parseInt(byte, 16))
+                                ),
+                            ],
+                            { type: "image/jpeg" }
+                        );
+                        const imageUrl = URL.createObjectURL(imageBlob);
+                        document.getElementById("latestImage").src = imageUrl;
+
+                        // 텍스트 업데이트
+                        document.getElementById(
+                            "prediction"
+                        ).innerText = `Prediction: ${data.prediction}`;
+                        document.getElementById(
+                            "productCode"
+                        ).innerText = `Product Code: ${data.product_code}`;
+
+                        // 클래스 카운트 업데이트
+                        const classCountsDiv =
+                            document.getElementById("classCounts");
+                        classCountsDiv.innerHTML = "<h3>Class Counts:</h3>";
+                        for (const [key, value] of Object.entries(
+                            data.class_counts
+                        )) {
+                            const p = document.createElement("p");
+                            p.innerText = `${key}: ${value}`;
+                            classCountsDiv.appendChild(p);
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error fetching the latest image:", error);
+                }
+            }
+
+            setInterval(fetchLatestImage, 1000); // 1초마다 최신 이미지 요청
+        </script>
+    </body>
+</html>

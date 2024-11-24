@@ -27,5 +27,5 @@ def rename_images_randomly(folder_path):
         print(f"Renamed: {file_name} -> {new_name}")
 
 # 사용 예제
-folder_path = "./img_capture"  # 이미지가 있는 폴더 경로
+folder_path = "./img_capture"  # 이미지가 있는 폴더 경로 / 사용 환경에 따라 변경 필요 
 rename_images_randomly(folder_path)

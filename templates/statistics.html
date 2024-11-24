@@ -1,38 +1,201 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Statistics</title>
-</head>
-<body>
-    <h1>Statistics</h1>
-    <button onclick="location.href='/'">Go Back to Main</button>
-    <h2>Inspection Status</h2>
-    <p>검수 완료: {{ completed_count }}</p>
-    <p>검수 미완료: {{ pending_count }}</p>
-    
-    <h2>Confusion Matrix</h2>
-    <table border="1" style="width: 50%; text-align: center;">
-        <thead>
-            <tr>
-                <th></th>
-                <th>Predicted Pass</th>
-                <th>Predicted Fail</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <th>Actual Pass</th>
-                <td>{{ tp }}</td>
-                <td>{{ fn }}</td>
-            </tr>
-            <tr>
-                <th>Actual Fail</th>
-                <td>{{ fp }}</td>
-                <td>{{ tn }}</td>
-            </tr>
-        </tbody>
-    </table>
-</body>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Statistics</title>
+
+        <!-- 구글 폰트 임베드 -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900&display=swap"
+            rel="stylesheet"
+        />
+
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+                font-family: "Roboto", sans-serif;
+                background-color: #f8f9fa;
+                color: #333;
+            }
+
+            header {
+                margin: 0;
+                padding: 10px 70px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background-color: #ffffff;
+                border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+
+            #Logo {
+                font-size: 2.2rem;
+                font-weight: 700;
+                color: #2c3e50;
+            }
+
+            nav ul {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+
+            nav ul li {
+                margin: 0 10px;
+            }
+
+            nav ul li a {
+                text-decoration: none;
+                color: white;
+                font-size: 1rem;
+                font-weight: 500;
+                background-color: #4dd48e;
+                padding: 8px 20px;
+                border-radius: 6px;
+                transition: background-color 0.3s ease;
+            }
+
+            nav ul li a:hover {
+                background-color: #39b474;
+            }
+
+            main {
+                max-width: 900px;
+                margin: 40px auto;
+                padding: 40px 20px;
+                background: #fff;
+                border-radius: 10px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
+
+            #explain {
+                text-align: center;
+                margin: 35px auto;
+                font-size: 1.6rem;
+            }
+
+            h2 {
+                font-size: 1.7rem;
+                margin: 30px 0;
+                color: #2c3e50;
+            }
+
+            main h2:first-child {
+                margin-top: 10px;
+            }
+
+            p {
+                font-size: 1rem;
+                margin: 10px 0;
+            }
+
+            /* 테이블 스타일 */
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 20px 0;
+                background-color: #fff;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+
+            /* 기본 테이블 셀 스타일 */
+            th,
+            td {
+                padding: 12px;
+                text-align: center;
+                border: 1px solid rgba(0, 0, 0, 0.1);
+            }
+
+            /* 헤더 (예측 값) 스타일 */
+            thead th {
+                background-color: #3690f1; /* 파란색 */
+                color: #fff;
+                font-weight: bold;
+            }
+
+            thead tr th:first-child {
+                background-color: rgb(229, 226, 226);
+            }
+
+            /* 첫 번째 열 (실제 값) 스타일 */
+            tbody th {
+                background-color: #4dd48e; /* 녹색 */
+                color: #fff;
+                font-weight: bold;
+            }
+
+            tbody tr:nth-child(even) {
+                background-color: #ffffff;
+            }
+
+            /* 셀 강조 효과 */
+            tbody td:hover {
+                background-color: #e9ecef;
+            }
+
+            footer {
+                text-align: center;
+                margin-top: 40px;
+                padding: 10px;
+                font-size: 0.9rem;
+                color: #aaa;
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <h1 id="Logo">Lorem</h1>
+            <nav>
+                <ul>
+                    <li><a href="/">Main</a></li>
+                    <li><a href="/inspection">Inspection</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <h2 id="explain">You can check inspection statistics here.</h2>
+
+        <main>
+            <h2>Inspection Status</h2>
+            <p>검수 완료: {{ completed_count }}</p>
+            <p>검수 미완료: {{ pending_count }}</p>
+
+            <h2>Confusion Matrix</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Predicted Pass</th>
+                        <th>Predicted Fail</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th>Actual Pass</th>
+                        <td>{{ tp }}</td>
+                        <td>{{ fn }}</td>
+                    </tr>
+                    <tr>
+                        <th>Actual Fail</th>
+                        <td>{{ fp }}</td>
+                        <td>{{ tn }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>Performance Metrics</h2>
+            <p>Precision: {{ precision | round(2) }}</p>
+            <p>Recall: {{ recall | round(2) }}</p>
+        </main>
+
+        <footer>&copy; 2024 Lorem Inc. All rights reserved.</footer>
+    </body>
 </html>

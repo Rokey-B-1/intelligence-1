@@ -1,4 +1,4 @@
-from flask import Flask, render_template, Response, jsonify, request
+from flask import Flask, render_template, Response, jsonify, request, url_for
 import threading
 import serial
 import cv2
@@ -19,12 +19,13 @@ app = Flask(__name__)
 latest_image = None  # 가장 마지막 처리된 이미지를 저장
 latest_prediction = None  # 가장 최근 판단 결과
 latest_product_code = None  # 가장 최근 제품 코드
+latest_class_counts = None # 가장 최근 제품의 YOLO 인식 결과
 
 # 데이터베이스 경로
 db_path = "products.db"
 
 # 저장 경로 설정
-save_path = 'static'
+save_path = os.path.join('static', 'images')
 os.makedirs(save_path, exist_ok=True)
 
 # Arduino 연결 설정
@@ -150,12 +151,12 @@ def inference_request(img: np.array, api_url: str):
     return []
 
 
-# 검출 결과 박스 그리기
 def draw_detection_box(img, objects):
-    global latest_prediction, latest_product_code
-    
+    global latest_prediction, latest_product_code, latest_class_counts
+
     class_counts = Counter([obj['class'] for obj in objects])
-    
+    latest_class_counts = dict(class_counts)  # 클래스 카운트를 글로벌 변수로 저장
+
     for obj in objects:
         class_name = obj['class']
         score = obj['score']
@@ -165,12 +166,12 @@ def draw_detection_box(img, objects):
         cv2.rectangle(img, (x_min, y_min), (x_max, y_max), colors[class_name], 2)
         label = f"{class_name} ({score:.2f})"
         cv2.putText(img, label, (x_min, y_min - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, colors[class_name], 2)
-        
+
     # Pass/Fail 판단
     is_pass = all(class_counts.get(part, 0) == count for part, count in standard.items())
     prediction = "Pass" if is_pass else "Fail"
     product_code = generate_product_code()
-    
+
     # 최신 판단 결과 업데이트
     latest_prediction = prediction
     latest_product_code = product_code
@@ -196,11 +197,16 @@ def event_loop():
             ser.write(b"1")  # 이벤트 트리거
         time.sleep(0.2)
         
+        
+##################################################################################
+
+# 메인 페이지 라우터
 @app.route('/')
 def index():
     """메인 페이지"""
     return render_template('index.html')
 
+# 검수 페이지 라우터
 @app.route('/inspection')
 def inspection():
     """데이터베이스에서 데이터 불러와 보여주는 페이지"""
@@ -211,6 +217,8 @@ def inspection():
     conn.close()
     return render_template('inspection.html', data=data)
 
+
+# 검수 페이지에서 실제 양품 / 불량 체크 라우터
 @app.route('/update_actual', methods=['POST'])
 def update_actual():
     """ACTUAL 열 업데이트"""
@@ -223,15 +231,18 @@ def update_actual():
     conn.close()
     return jsonify({"success": True, "product_num": product_num, "actual_status": actual_status})
 
+# 검수 페이지에서 이미지 불러오는 라우터
 @app.route('/get_image/<product_num>')
 def get_image(product_num):
     """해당 PRODUCT_NUM의 이미지를 반환"""
-    image_path = os.path.join(save_path, f"{product_num}.jpg")  # static 폴더 기준 경로
+    image_path = os.path.join(save_path, f"{product_num}.jpg")  # static/Images 기준 경로
     if os.path.exists(image_path):
-        return jsonify({"image_url": f"/static/{product_num}.jpg"})  # URL 경로 반환
+        return jsonify({"image_url": f"/static/images/{product_num}.jpg"})  # URL 경로 반환
     else:
         return jsonify({"error": "Image not found"}), 404
+
     
+# 통계 페이지 라우터
 @app.route('/statistics')
 def statistics():
     """통계 페이지"""
@@ -253,25 +264,31 @@ def statistics():
     fn = sum(1 for pred, actual in results if pred == "Fail" and actual == "Pass")
     tn = sum(1 for pred, actual in results if pred == "Fail" and actual == "Fail")
     
+    # Precision, Recall 계산
+    precision = tp / (tp + fp) if (tp + fp) > 0 else 0
+    recall = tp / (tp + fn) if (tp + fn) > 0 else 0
+    
     conn.close()
     
     return render_template('statistics.html', 
                            completed_count=completed_count, 
                            pending_count=pending_count,
-                           tp=tp, fp=fp, fn=fn, tn=tn)
+                           tp=tp, fp=fp, fn=fn, tn=tn,
+                           precision=precision, recall=recall)
 
 
 @app.route('/latest_image')
 def get_latest_image():
     """가장 최근 처리된 이미지를 반환"""
-    global latest_image, latest_prediction, latest_product_code
-    
+    global latest_image, latest_prediction, latest_product_code, latest_class_counts
+
     if latest_image is not None:
         _, img_encoded = cv2.imencode('.jpg', latest_image)
         return jsonify({
             "image": img_encoded.tobytes().hex(),  # 이미지 데이터를 Hex로 변환
             "prediction": latest_prediction,
-            "product_code": latest_product_code
+            "product_code": latest_product_code,
+            "class_counts": latest_class_counts  # 클래스 카운트 추가
         })
     return "No image yet", 404
 
