@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inspection Page</title>
+    <script>
+        function updateActual(productNum, status) {
+            fetch('/update_actual', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    product_num: productNum,
+                    actual_status: status
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`Product ${productNum} marked as ${status}`);
+                    location.reload(); // 페이지 새로고침
+                } else {
+                    alert('Failed to update product status.');
+                }
+            });
+        }
+
+        function showImage(productNum) {
+            fetch(`/get_image/${productNum}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.image_url) {
+                        const img = document.getElementById('productImage');
+                        img.src = data.image_url;
+                        img.style.display = 'block';
+                    } else {
+                        alert('Image not found.');
+                    }
+                });
+        }
+        
+    </script>
+</head>
+<body>
+    <h1>Inspection</h1>
+    <a href="/">Go Back to Main</a>
+
+    <div>
+        <img id="productImage" style="display: none; max-width: 400px; border: 1px solid #ccc;" alt="Product Image">
+    </div>
+    <table border="1" style="width: 100%; margin-top: 20px;">
+        <thead>
+            <tr>
+                <th>Product Number</th>
+                <th>BOOTSEL</th>
+                <th>USB</th>
+                <th>CHIPSET</th>
+                <th>OSCILLATOR</th>
+                <th>RASPBERRY PICO</th>
+                <th>HOLE</th>
+                <th>Prediction</th>
+                <th>Actual</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in data %}
+            <tr>
+                <td>
+                    <a href="#" onclick="showImage('{{ row[0] }}')">{{ row[0] }}</a>
+                </td>
+                <td>{{ row[1] }}</td>
+                <td>{{ row[2] }}</td>
+                <td>{{ row[3] }}</td>
+                <td>{{ row[4] }}</td>
+                <td>{{ row[5] }}</td>
+                <td>{{ row[6] }}</td>
+                <td>{{ row[7] }}</td>
+                <td>{{ row[8] }}</td>
+                <td>
+                    <button onclick="updateActual('{{ row[0] }}', 'Pass')">Pass</button>
+                    <button onclick="updateActual('{{ row[0] }}', 'Fail')">Fail</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
+

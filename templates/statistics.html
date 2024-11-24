@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistics</title>
+</head>
+<body>
+    <h1>Statistics</h1>
+    <button onclick="location.href='/'">Go Back to Main</button>
+    <h2>Inspection Status</h2>
+    <p>검수 완료: {{ completed_count }}</p>
+    <p>검수 미완료: {{ pending_count }}</p>
+    
+    <h2>Confusion Matrix</h2>
+    <table border="1" style="width: 50%; text-align: center;">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Predicted Pass</th>
+                <th>Predicted Fail</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th>Actual Pass</th>
+                <td>{{ tp }}</td>
+                <td>{{ fn }}</td>
+            </tr>
+            <tr>
+                <th>Actual Fail</th>
+                <td>{{ fp }}</td>
+                <td>{{ tn }}</td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

@@ -1,35 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Image Processing</title>
-        <script>
-            async function fetchLatestImage() {
-                try {
-                    const response = await fetch("/latest_image");
-                    if (response.ok) {
-                        const blob = await response.blob();
-                        const url = URL.createObjectURL(blob);
-                        document.getElementById("latestImage").src = url;
-                    } else {
-                        console.error("Failed to fetch latest image");
-                    }
-                } catch (error) {
-                    console.error("Error:", error);
-                }
-            }
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Inspection</title>
+    <script>
+        async function fetchLatestImage() {
+            try {
+                const response = await fetch('/latest_image');
+                if (response.ok) {
+                    const data = await response.json();
+                    const imageBlob = new Blob([new Uint8Array(data.image.match(/.{1,2}/g).map(byte => parseInt(byte, 16)))], { type: 'image/jpeg' });
+                    const imageUrl = URL.createObjectURL(imageBlob);
 
-            setInterval(fetchLatestImage, 1000); // 1초마다 최신 이미지 요청
-        </script>
-    </head>
-    <body>
-        <h1>Raspberry PICO Inspection</h1>
-        <img
-            id="latestImage"
-            src=""
-            alt="Latest Image"
-            style="max-width: 400px; border: 1px solid #ccc"
-        />
-    </body>
-</html>
+                    document.getElementById('latestImage').src = imageUrl;
+                    document.getElementById('prediction').innerText = `Prediction: ${data.prediction}`;
+                    document.getElementById('productCode').innerText = `Product Code: ${data.product_code}`;
+                }
+            } catch (error) {
+                console.error('Error fetching the latest image:', error);
+            }
+        }
+
+        setInterval(fetchLatestImage, 1000); // 0.5초마다 최신 이미지 요청
+    </script>
+</head>
+<body>
+    <h1>Product Inspection</h1>
+    <img id="latestImage" alt="Latest Image" style="max-width: 400px; border: 1px solid #ccc;">
+    <p id="prediction">Prediction: N/A</p>
+    <p id="productCode">product code : N/A</p>
+    <a href="/inspection">Go to Inspection</a>
+    <a href="/statistics">Go to Statistics</a>

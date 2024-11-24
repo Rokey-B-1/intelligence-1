@@ -10,7 +10,7 @@ from collections import Counter
 ser = serial.Serial("/dev/ttyACM0", 9600) # connect with Arduino
 
 # API endpoint
-api_url = "https://suite-endpoint-api-apne2.superb-ai.com/endpoints/2746c0ac-eec0-467b-a6da-a7308968fc16/inference"
+api_url = "https://suite-endpoint-api-apne2.superb-ai.com/endpoints/83811d26-5705-4173-9406-b963ceb915c3/inference"
 ACCESS_KEY = "B6wJEdHqC111qCcAKVnKR7rzHYz18sCJ2ig0y2JW"
 
 colors = {
@@ -70,17 +70,14 @@ def inference_reqeust(img: numpy.array, api_rul: str):
 
     try:
         response = requests.post(
-            url="https://suite-endpoint-api-apne2.superb-ai.com/endpoints/2746c0ac-eec0-467b-a6da-a7308968fc16/inference",
+            url=api_url,
             auth=HTTPBasicAuth("kdt2024_1-6", ACCESS_KEY),
             headers={"Content-Type": "image/jpeg"},
             data=img_bytes,
         )   
         
         if response.status_code == 200:
-            response_data = response.json()
-            objects = response_data['objects']
-
-            return objects
+            return response.json().get('objects', [])
         
         else:
             print(f"Failed to send image. Status code: {response.status_code}")

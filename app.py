@@ -1,4 +1,4 @@
-from flask import Flask, render_template, Response
+from flask import Flask, render_template, Response, jsonify, request
 import threading
 import serial
 import cv2
@@ -8,14 +8,30 @@ from requests.auth import HTTPBasicAuth
 from collections import Counter
 from io import BytesIO
 import time
+import os
+import sqlite3
+import secrets
+import string
 
 app = Flask(__name__)
+
+# 글로벌 변수
+latest_image = None  # 가장 마지막 처리된 이미지를 저장
+latest_prediction = None  # 가장 최근 판단 결과
+latest_product_code = None  # 가장 최근 제품 코드
+
+# 데이터베이스 경로
+db_path = "products.db"
+
+# 저장 경로 설정
+save_path = 'static'
+os.makedirs(save_path, exist_ok=True)
 
 # Arduino 연결 설정
 ser = serial.Serial("/dev/ttyACM0", 9600)
 
 # API Endpoint 및 인증 정보
-api_url = "https://suite-endpoint-api-apne2.superb-ai.com/endpoints/2746c0ac-eec0-467b-a6da-a7308968fc16/inference"
+api_url = "https://suite-endpoint-api-apne2.superb-ai.com/endpoints/83811d26-5705-4173-9406-b963ceb915c3/inference"
 ACCESS_KEY = "B6wJEdHqC111qCcAKVnKR7rzHYz18sCJ2ig0y2JW"
 
 # 색상 정의
@@ -28,9 +44,74 @@ colors = {
     'HOLE': (255, 0, 225),
 }
 
-# 글로벌 변수
-latest_image = None  # 가장 마지막 처리된 이미지를 저장
+# Pass/Fail 기준
+standard = {
+    "BOOTSEL": 1,
+    "USB": 1,
+    "CHIPSET": 1,
+    "OSCILLATOR": 1,
+    "RASPBERRY PICO": 1,
+    "HOLE": 4
+}
 
+
+def initialize_database():
+    """데이터베이스 초기화"""
+    conn = sqlite3.connect("products.db")
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS 제품검수 (
+            PRODUCT_NUM TEXT PRIMARY KEY,
+            BOOTSEL INTEGER NOT NULL,
+            USB INTEGER NOT NULL,
+            CHIPSET INTEGER NOT NULL,
+            OSCILLATOR INTEGER NOT NULL,
+            RASPBERRY_PICO INTEGER NOT NULL,
+            HOLE INTEGER NOT NULL,
+            PREDICT TEXT NOT NULL,
+            ACTUAL TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
+    
+def generate_product_code(length=8):
+    """안전한 제품 코드 생성"""
+    alphabet = string.ascii_uppercase + string.digits
+    return ''.join(secrets.choice(alphabet) for _ in range(length))
+
+def save_to_database(product_code, class_counts, prediction, image):
+    """데이터베이스와 이미지 저장"""
+    # 이미지 저장
+    img_filename = f"{save_path}/{product_code}.jpg"
+    cv2.imwrite(img_filename, image)
+    
+    # DB 저장
+    conn = sqlite3.connect("products.db")
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO 제품검수 (
+            PRODUCT_NUM, BOOTSEL, USB, CHIPSET, OSCILLATOR,
+            RASPBERRY_PICO, HOLE, PREDICT, ACTUAL
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', ( 
+        product_code,
+        class_counts.get("BOOTSEL", 0),
+        class_counts.get("USB", 0),
+        class_counts.get("CHIPSET", 0),
+        class_counts.get("OSCILLATOR", 0),
+        class_counts.get("RASPBERRY PICO", 0),
+        class_counts.get("HOLE", 0),
+        prediction,
+        None
+    ))
+    conn.commit()
+    conn.close()
+
+def async_save_to_database(product_code, class_counts, prediction, img):
+    """데이터베이스 저장 작업을 별도 스레드에서 실행"""
+    thread = threading.Thread(target=save_to_database, args=(product_code, class_counts, prediction, img))
+    thread.start()
 
 # 카메라 이미지 캡처
 def get_img():
@@ -41,15 +122,15 @@ def get_img():
     cam.release()
     return img
 
-
-# 이미지 크롭
+# Function - crop the image
 def crop_img(img, size_dict):
     x = size_dict["x"]
     y = size_dict["y"]
     w = size_dict["width"]
     h = size_dict["height"]
-    return img[y:y + h, x:x + w]
-
+    img = img[y : y + h, x : x + w]
+    
+    return img
 
 # AI 추론 요청
 def inference_request(img: np.array, api_url: str):
@@ -71,7 +152,10 @@ def inference_request(img: np.array, api_url: str):
 
 # 검출 결과 박스 그리기
 def draw_detection_box(img, objects):
+    global latest_prediction, latest_product_code
+    
     class_counts = Counter([obj['class'] for obj in objects])
+    
     for obj in objects:
         class_name = obj['class']
         score = obj['score']
@@ -81,10 +165,22 @@ def draw_detection_box(img, objects):
         cv2.rectangle(img, (x_min, y_min), (x_max, y_max), colors[class_name], 2)
         label = f"{class_name} ({score:.2f})"
         cv2.putText(img, label, (x_min, y_min - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, colors[class_name], 2)
+        
+    # Pass/Fail 판단
+    is_pass = all(class_counts.get(part, 0) == count for part, count in standard.items())
+    prediction = "Pass" if is_pass else "Fail"
+    product_code = generate_product_code()
+    
+    # 최신 판단 결과 업데이트
+    latest_prediction = prediction
+    latest_product_code = product_code
+
+    # DB에 비동기로 저장
+    async_save_to_database(product_code, class_counts, prediction, img)
+
     return img
 
-
-# 이벤트 루프 (스레드에서 실행)
+# 이벤트 루프
 def event_loop():
     global latest_image
     while True:
@@ -98,27 +194,92 @@ def event_loop():
             img = draw_detection_box(img, result)
             latest_image = img  # 글로벌 변수에 저장
             ser.write(b"1")  # 이벤트 트리거
-        time.sleep(0.1)  # 루프 주기 설정
-
-
+        time.sleep(0.2)
+        
 @app.route('/')
 def index():
     """메인 페이지"""
     return render_template('index.html')
 
+@app.route('/inspection')
+def inspection():
+    """데이터베이스에서 데이터 불러와 보여주는 페이지"""
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM 제품검수")
+    data = cursor.fetchall()
+    conn.close()
+    return render_template('inspection.html', data=data)
+
+@app.route('/update_actual', methods=['POST'])
+def update_actual():
+    """ACTUAL 열 업데이트"""
+    product_num = request.form.get("product_num")
+    actual_status = request.form.get("actual_status")
+    conn = sqlite3.connect("products.db")
+    cursor = conn.cursor()
+    cursor.execute("UPDATE 제품검수 SET ACTUAL = ? WHERE PRODUCT_NUM = ?", (actual_status, product_num))
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True, "product_num": product_num, "actual_status": actual_status})
+
+@app.route('/get_image/<product_num>')
+def get_image(product_num):
+    """해당 PRODUCT_NUM의 이미지를 반환"""
+    image_path = os.path.join(save_path, f"{product_num}.jpg")  # static 폴더 기준 경로
+    if os.path.exists(image_path):
+        return jsonify({"image_url": f"/static/{product_num}.jpg"})  # URL 경로 반환
+    else:
+        return jsonify({"error": "Image not found"}), 404
+    
+@app.route('/statistics')
+def statistics():
+    """통계 페이지"""
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    
+    # 검수 완료와 미완료 개수
+    cursor.execute("SELECT COUNT(*) FROM 제품검수 WHERE ACTUAL IS NOT NULL")
+    completed_count = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM 제품검수 WHERE ACTUAL IS NULL")
+    pending_count = cursor.fetchone()[0]
+    
+    # TP, FP, FN, TN 계산
+    cursor.execute("SELECT PREDICT, ACTUAL FROM 제품검수 WHERE ACTUAL IS NOT NULL")
+    results = cursor.fetchall()
+    
+    tp = sum(1 for pred, actual in results if pred == "Pass" and actual == "Pass")
+    fp = sum(1 for pred, actual in results if pred == "Pass" and actual == "Fail")
+    fn = sum(1 for pred, actual in results if pred == "Fail" and actual == "Pass")
+    tn = sum(1 for pred, actual in results if pred == "Fail" and actual == "Fail")
+    
+    conn.close()
+    
+    return render_template('statistics.html', 
+                           completed_count=completed_count, 
+                           pending_count=pending_count,
+                           tp=tp, fp=fp, fn=fn, tn=tn)
+
 
 @app.route('/latest_image')
 def get_latest_image():
     """가장 최근 처리된 이미지를 반환"""
-    global latest_image
+    global latest_image, latest_prediction, latest_product_code
+    
     if latest_image is not None:
         _, img_encoded = cv2.imencode('.jpg', latest_image)
-        return Response(img_encoded.tobytes(), mimetype='image/jpeg')
+        return jsonify({
+            "image": img_encoded.tobytes().hex(),  # 이미지 데이터를 Hex로 변환
+            "prediction": latest_prediction,
+            "product_code": latest_product_code
+        })
     return "No image yet", 404
 
 
 if __name__ == "__main__":
-    # 이벤트 루프를 별도 스레드에서 실행
+    initialize_database()
     thread = threading.Thread(target=event_loop, daemon=True)
     thread.start()
     app.run(debug=True)
+
+
