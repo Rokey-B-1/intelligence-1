@@ -1,8 +1,9 @@
-import cv2
-import gradio as gr
+import time
+import serial
 import requests
-import numpy as np
-from PIL import Image
+import numpy
+import cv2
+from io import BytesIO
 from requests.auth import HTTPBasicAuth
 from collections import Counter
 
@@ -21,7 +22,7 @@ colors = {
     'HOLE': (255, 0, 225),
 }
 
-###
+
 # Function - capture cam image
 def get_img():
     """Get Image From USB Camera
@@ -116,9 +117,8 @@ def draw_detection_box(img, objects) :
         
     return image_cv
 
-###
 
-def process_image():
+while 1:
     data = ser.read()
     print(data)
     
@@ -126,7 +126,7 @@ def process_image():
         img = get_img() # result of get_img func.
         # crop_info = None
         crop_info = {"x": 270, "y": 100, "width": 300, "height": 300}
- 
+
         if crop_info is not None:
             img = crop_img(img, crop_info) # result of crop_img func.
             
@@ -141,21 +141,3 @@ def process_image():
         
     else:
         pass
-    
-    
-    # BGR 이미지를 RGB로 변환
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    return Image.fromarray(image)
-
-
-# Gradio 인터페이스 설정
-iface = gr.Interface(
-    fn=process_image,
-    inputs=gr.Image(type="pil"),
-    outputs="image",
-    title="Vision AI Object Detection",
-    description="Upload an image to detect objects using Vision AI.",
-)
-
-# 인터페이스 실행
-iface.launch(share=True)

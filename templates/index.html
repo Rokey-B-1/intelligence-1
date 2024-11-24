@@ -1,44 +1,35 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Flask 실시간 이미지</title>
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-        <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+        <title>Image Processing</title>
+        <script>
+            async function fetchLatestImage() {
+                try {
+                    const response = await fetch("/latest_image");
+                    if (response.ok) {
+                        const blob = await response.blob();
+                        const url = URL.createObjectURL(blob);
+                        document.getElementById("latestImage").src = url;
+                    } else {
+                        console.error("Failed to fetch latest image");
+                    }
+                } catch (error) {
+                    console.error("Error:", error);
+                }
+            }
+
+            setInterval(fetchLatestImage, 1000); // 1초마다 최신 이미지 요청
+        </script>
     </head>
     <body>
-        <h1>실시간 이미지</h1>
-        <button id="toggle-btn">프로그램 시작</button>
-        <h2>실시간 이미지</h2>
-        <img id="live-image" src="" alt="Live Image" width="640" height="480" />
-
-        <script>
-            $(document).ready(function () {
-                // WebSocket 연결 설정
-                var socket = io.connect(
-                    "http://" + document.domain + ":" + location.port
-                );
-
-                // 서버로부터 이미지를 받았을 때 처리하는 이벤트 리스너
-                socket.on("new_image", function (data) {
-                    // base64로 받은 이미지를 img 태그의 src에 넣어주기
-                    $("#live-image").attr(
-                        "src",
-                        "data:image/jpeg;base64," + data.image
-                    );
-                });
-
-                $("#toggle-btn").click(function () {
-                    $.post("/toggle_program", function (data) {
-                        if (data.status === "started") {
-                            $("#toggle-btn").text("프로그램 종료");
-                        } else {
-                            $("#toggle-btn").text("프로그램 시작");
-                        }
-                    });
-                });
-            });
-        </script>
+        <h1>Raspberry PICO Inspection</h1>
+        <img
+            id="latestImage"
+            src=""
+            alt="Latest Image"
+            style="max-width: 400px; border: 1px solid #ccc"
+        />
     </body>
 </html>
