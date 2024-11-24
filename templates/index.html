@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Real-Time Object Detection</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js"></script>
+    </head>
+    <body>
+        <h1>Real-Time Object Detection</h1>
+        <button id="startStopButton">Start Process</button>
+        <img id="stream" style="width: 600px; height: auto" />
+
+        <script>
+            const socket = io();
+            const button = document.getElementById("startStopButton");
+
+            socket.on("connect", () => {
+                console.log("Connected to server");
+            });
+
+            // 버튼 클릭 이벤트
+            button.addEventListener("click", () => {
+                socket.emit("toggle_process"); // 서버로 'toggle_process' 이벤트 전송
+            });
+
+            // 프로세스 상태 업데이트
+            socket.on("process_status", (data) => {
+                if (data.status === "running") {
+                    button.textContent = "Stop Process";
+                } else {
+                    button.textContent = "Start Process";
+                }
+            });
+
+            // 서버로부터 이미지 업데이트 이벤트 수신
+            socket.on("image_update", (data) => {
+                const imgElement = document.getElementById("stream");
+                imgElement.src = `data:image/jpeg;base64,${data.image}`;
+            });
+        </script>
+    </body>
+</html>

@@ -5,3 +5,5 @@
 ## H/W Spec
 
 ## S/W Spec
+
+SuperbAI Platform
