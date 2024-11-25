@@ -207,7 +207,7 @@ def draw_detection_box(img, objects):
 # 이벤트 루프
 def event_loop():
     global latest_image
-    while True:
+    while True: 
         data = ser.read()  # Arduino에서 신호 수신
         if data == b"0":
             img = get_img()
@@ -219,7 +219,6 @@ def event_loop():
             latest_image = img  # 글로벌 변수에 저장
             ser.write(b"1")  # 이벤트 트리거
         time.sleep(0.2)
-        
         
 ##################################################################################
 
@@ -321,5 +320,3 @@ if __name__ == "__main__":
     thread = threading.Thread(target=event_loop, daemon=True)
     thread.start()
     app.run(debug=True)
-
-

@@ -61,6 +61,7 @@ h2 {
 main {
     max-width: 1200px;
     margin: 0 auto;
+    padding: 10px 20px;
     background: #fff;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -70,7 +71,7 @@ main {
     background-color: rgb(246, 250, 255);
     width: 1100px;
     height: 570px;
-    margin: 30px auto 55px auto;
+    margin: 30px auto 45px auto;
 
     display: flex;
     justify-content: center;

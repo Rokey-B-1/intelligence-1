@@ -69,58 +69,74 @@ h2 {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* 테이블 컨테이너 스타일 */
+/* 테이블 컨테이너 */
 #table-container {
-    width: 95%; /* 컨테이너 너비 */
-    max-height: 550px; /* 최대 높이 설정 */
+    width: 85%; /* 컨테이너 폭 설정 */
+    max-height: 450px; /* 최대 높이 설정 */
     overflow-y: auto; /* 세로 스크롤 활성화 */
     margin: 20px auto;
-    border: 1px solid #ddd; /* 테두리 */
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 박스 그림자 */
+    border: 1px solid #ddd; /* 컨테이너 테두리 */
+    border-radius: 8px; /* 모서리를 둥글게 설정 */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 컨테이너 그림자 */
+    background-color: #fff; /* 배경색 */
 }
 
 /* 테이블 스타일 */
 table {
-    width: 100%; /* 테이블 폭을 컨테이너 폭에 맞춤 */
-    border-collapse: collapse;
-    background-color: #fff;
+    width: 100%; /* 테이블 폭을 컨테이너에 맞춤 */
+    border-collapse: collapse; /* 테두리 중첩 제거 */
+    background-color: #fff; /* 배경색 설정 */
+    table-layout: fixed;
 }
 
 thead {
-    position: sticky; /* 헤더 고정 */
+    position: sticky; /* 헤더를 고정 */
     top: 0;
-    background-color: #007bff; /* 헤더 배경색 */
-    color: white;
-    z-index: 1;
+    background-color: #0f83ff; /* 헤더 배경색 */
+    color: white; /* 헤더 글자색 */
+    z-index: 1; /* 헤더가 다른 요소 위에 표시되도록 설정 */
 }
 
 th,
 td {
-    text-align: center;
-    border: 1px solid #ddd;
-    word-wrap: break-word; /* 긴 텍스트 줄바꿈 처리 */
-    white-space: normal; /* 가로 스크롤 방지 */
+    padding: 12px; /* 패딩으로 셀 내부 여백 설정 */
+    border: 1px solid #ddd; /* 셀 테두리 */
+    text-align: center; /* 텍스트 중앙 정렬 */
+    vertical-align: middle; /* 세로 정렬 */
+    word-wrap: break-word; /* 긴 텍스트 줄바꿈 허용 */
 }
 
 th {
-    padding: 12px;
     font-weight: bold;
     font-size: 1.1rem;
 }
 
+/* 텍스트 오버플로 처리 */
+th,
 td {
-    padding: 3px 10px;
+    white-space: nowrap; /* 텍스트 줄바꿈 방지 */
+    overflow: hidden; /* 넘치는 텍스트 숨김 */
+    text-overflow: ellipsis; /* 넘치는 텍스트에 말줄임표 추가 */
 }
 
-tbody tr:hover {
-    background-color: #f1f1f1;
+/* 반응형 테이블 */
+@media (max-width: 768px) {
+    table {
+        font-size: 0.9rem; /* 작은 화면에서 글자 크기 조정 */
+    }
+    th,
+    td {
+        padding: 8px; /* 작은 화면에서 패딩 조정 */
+    }
 }
+
 
 /* 버튼 스타일 */
 button {
     padding: 8px 16px;
     margin: 5px;
+    font-family: "Roboto", sans-serif;
+    font-weight: 500;
     font-size: 0.9rem;
     border: none;
     border-radius: 5px;
