@@ -1,4 +1,4 @@
-""" 클라우드 엔드포인트에서 추론값을 가져오는 통합 프로그램입니다. """
+""" 강의실 로컬 서버에서 추론값을 가져오는 통합 프로그램입니다. """
 
 from flask import Flask, render_template, Response, jsonify, request, url_for
 import threading
@@ -33,9 +33,15 @@ os.makedirs(save_path, exist_ok=True)
 # Arduino 연결 설정
 ser = serial.Serial("/dev/ttyACM0", 9600)
 
-# API Endpoint 및 인증 정보
-api_url = "https://suite-endpoint-api-apne2.superb-ai.com/endpoints/83811d26-5705-4173-9406-b963ceb915c3/inference"
-ACCESS_KEY = "B6wJEdHqC111qCcAKVnKR7rzHYz18sCJ2ig0y2JW"
+# API endpoint
+api_url = "http://192.168.10.13:8881/inference/run"
+
+params = {
+    "min_confidence" : 0.7,
+    "base_model" : "YOLOv6-L",
+}
+
+number_mapping = [None, "BOOTSEL", "CHIPSET", "HOLE", "OSCILLATOR", "RASPBERRY PICO", "USB"]
 
 # 색상 정의
 colors = {
@@ -138,37 +144,52 @@ def crop_img(img, size_dict):
 # AI 추론 요청
 def inference_request(img: np.array, api_url: str):
     _, img_encoded = cv2.imencode(".jpg", img)
+
+    ### Prepare the image for sending ###
     img_bytes = BytesIO(img_encoded.tobytes())
+
+    # Send the image to the API
+    files = {"file": ("image.jpg", img_bytes, "image/jpeg")}
+    
     try:
         response = requests.post(
             url=api_url,
-            auth=HTTPBasicAuth("kdt2024_1-6", ACCESS_KEY),
-            headers={"Content-Type": "image/jpeg"},
-            data=img_bytes,
-        )
+            params=params,
+            files=files
+        )   
+        
         if response.status_code == 200:
-            return response.json().get('objects', [])
+            response_data = response.json()
+            objects = response_data['objects']
+
+            return objects
+        
+        else:
+            print(f"Failed to send image. Status code: {response.status_code}")
+            
     except requests.exceptions.RequestException as e:
-        print(f"Error: {e}")
-    return []
+        print(f"Error sending request: {e}")
 
 
 def draw_detection_box(img, objects):
     global latest_prediction, latest_product_code, latest_class_counts
 
-    class_counts = Counter([obj['class'] for obj in objects])
+    class_counts = Counter([number_mapping[obj['class_number']] for obj in objects])
     latest_class_counts = dict(class_counts)  # 클래스 카운트를 글로벌 변수로 저장
 
     for obj in objects:
-        class_name = obj['class']
-        score = obj['score']
-        if score < 0.7:
-            continue
-        x_min, y_min, x_max, y_max = obj['box']
-        cv2.rectangle(img, (x_min, y_min), (x_max, y_max), colors[class_name], 2)
-        label = f"{class_name} ({score:.2f})"
-        cv2.putText(img, label, (x_min, y_min - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, colors[class_name], 2)
+        class_name = number_mapping[obj['class_number']]
+        score = obj['confidence']
+        box = obj['bbox']  # [x_min, y_min, x_max, y_max]
+        color = colors[class_name]
+    
+        box_int = [int(c) for c in box]
+        x_min, y_min, x_max, y_max = box_int
+        cv2.rectangle(img, (x_min, y_min), (x_max, y_max), color, 2)
 
+        label = f"{class_name} ({score:.2f})"
+        cv2.putText(img, label, (x_min, y_min - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.3, color, 1)
+        
     # Pass/Fail 판단
     is_pass = all(class_counts.get(part, 0) == count for part, count in standard.items())
     prediction = "Pass" if is_pass else "Fail"
