@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Statistics</title>
+
+        <!-- 구글 폰트 임베드 -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900&display=swap"
+            rel="stylesheet"
+        />
+
+        <!-- CSS -->
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='css/statistics.css') }}"
+        />
+    </head>
+    <body>
+        <header>
+            <h1 id="Logo">PickO</h1>
+            <nav>
+                <ul>
+                    <li><a href="/">Main</a></li>
+                    <li><a href="/inspection">Inspection</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <h2 id="explain">You can check inspection statistics here.</h2>
+
+        <main>
+            <h2>Inspection Status</h2>
+            <p>검수 완료: {{ completed_count }}</p>
+            <p>검수 미완료: {{ pending_count }}</p>
+
+            <h2>Confusion Matrix</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Predicted Pass</th>
+                        <th>Predicted Fail</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th>Actual Pass</th>
+                        <td>{{ tp }}</td>
+                        <td>{{ fn }}</td>
+                    </tr>
+                    <tr>
+                        <th>Actual Fail</th>
+                        <td>{{ fp }}</td>
+                        <td>{{ tn }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>Performance Metrics</h2>
+            <p>Precision: {{ precision | round(2) }}</p>
+            <p>Recall: {{ recall | round(2) }}</p>
+        </main>
+
+        <footer>&copy; 2024 PickO Inc. All rights reserved.</footer>
+    </body>
+</html>

@@ -1,0 +1,154 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "Roboto", sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+header {
+    margin: 0;
+    padding: 10px 70px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #ffffff;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#Logo {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+nav ul {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+nav ul li {
+    margin: 0 10px;
+}
+
+nav ul li a {
+    text-decoration: none;
+    color: white;
+    font-size: 1rem;
+    font-weight: 500;
+    background-color: #4dd48e;
+    padding: 8px 20px;
+    border-radius: 6px;
+    transition: background-color 0.3s ease;
+}
+
+nav ul li a:hover {
+    background-color: #39b474;
+}
+
+h2 {
+    text-align: center;
+    font-size: 1.6rem;
+    margin: 35px auto;
+    color: #2c3e50;
+}
+
+main {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+#part-check {
+    background-color: rgb(246, 250, 255);
+    width: 1100px;
+    height: 570px;
+    margin: 30px auto 55px auto;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    border-radius: 12px;
+    border: solid black 1px;
+}
+
+#part-check #image {
+    display: block;
+    width: 400px;
+    height: 500px;
+    margin-right: 60px;
+    border: 1px solid #b4b4b4;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+#part-check #image img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#part-check #classCounts {
+    width: 300px;
+    height: 420px;
+    margin-left: 60px;
+    border: rgba(89, 89, 89, 0.7) solid 1px;
+    border-radius: 12px;
+}
+
+#classCount-info {
+    padding: 20px;
+}
+
+#part-information {
+    width: 1100px;
+    height: 120px;
+    margin: 0 auto;
+
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+
+    border: rgba(0, 0, 0, 0.7) solid 1px;
+    border-radius: 12px;
+}
+
+#productCode {
+    width: 500px;
+    text-align: center;
+    padding-left: 20px;
+
+    font-family: "Roboto", sans-serif;
+    font-weight: 700;
+    font-style: normal;
+    font-size: 1.4rem;
+}
+
+#prediction {
+    width: 500px;
+    text-align: center;
+    padding-right: 20px;
+
+    font-family: "Roboto", sans-serif;
+    font-weight: 700;
+    font-style: normal;
+    font-size: 1.4rem;
+}
+
+footer {
+    text-align: center;
+    margin-top: 40px;
+    padding: 10px;
+    font-size: 0.9rem;
+    color: #aaa;
+}

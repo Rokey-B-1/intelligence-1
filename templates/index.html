@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Product Inspection</title>
+
+        <!-- 구글 폰트 임베드 -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+            rel="stylesheet"
+        />
+
+        <!-- CSS -->
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='css/style.css') }}"
+        />
+    </head>
+    <body>
+        <header>
+            <h1 id="Logo">PickO</h1>
+            <nav>
+                <ul>
+                    <li><a href="/inspection">Inspection</a></li>
+                    <li><a href="/statistics">Statistics</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <h2>Raspberry PICO defect detector with YOLOv6</h2>
+
+        <main>
+            <div id="part-check">
+                <div id="image">
+                    <img
+                        id="latestImage"
+                        alt="Show image here!"
+                    />
+                </div>
+                <div id="classCounts">
+                    <div id="classCount-info">
+                        <h3>Class Counts:</h3>
+                        <!-- 클래스 카운트가 여기에 표시됩니다 -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="part-information">
+                <p id="productCode">Product Code: N/A</p>
+                <p id="prediction">Prediction: N/A</p>
+            </div>
+        </main>
+
+        <footer>&copy; 2024 PickO Inc. All rights reserved.</footer>
+
+        <script>
+            async function fetchLatestImage() {
+                try {
+                    const response = await fetch("/latest_image");
+                    if (response.ok) {
+                        const data = await response.json();
+
+                        // 이미지 처리
+                        const imageBlob = new Blob(
+                            [
+                                new Uint8Array(
+                                    data.image
+                                        .match(/.{1,2}/g)
+                                        .map((byte) => parseInt(byte, 16))
+                                ),
+                            ],
+                            { type: "image/jpeg" }
+                        );
+                        const imageUrl = URL.createObjectURL(imageBlob);
+                        document.getElementById("latestImage").src = imageUrl;
+
+                        // 텍스트 업데이트
+                        document.getElementById(
+                            "prediction"
+                        ).innerText = `Prediction: ${data.prediction}`;
+                        document.getElementById(
+                            "productCode"
+                        ).innerText = `Product Code: ${data.product_code}`;
+
+                        // 클래스 카운트 업데이트
+                        const classCountsDiv = document.getElementById("classCount-info");
+                        classCountsDiv.innerHTML = "<h3>Class Counts:</h3>";
+                        for (const [key, value] of Object.entries(
+                            data.class_counts
+                        )) {
+                            const p = document.createElement("p");
+                            p.innerText = `${key}: ${value}`;
+                            classCountsDiv.appendChild(p);
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error fetching the latest image:", error);
+                }
+            }
+
+            setInterval(fetchLatestImage, 1000); // 1초마다 최신 이미지 요청
+        </script>
+    </body>
+</html>

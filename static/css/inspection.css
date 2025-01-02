@@ -1,0 +1,178 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "Roboto", sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+header {
+    margin: 0;
+    padding: 10px 70px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #ffffff;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#Logo {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+nav ul {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+nav ul li {
+    margin: 0 10px;
+}
+
+nav ul li a {
+    text-decoration: none;
+    color: white;
+    font-size: 1rem;
+    font-weight: 500;
+    background-color: #4dd48e;
+    padding: 8px 20px;
+    border-radius: 6px;
+    transition: background-color 0.3s ease;
+}
+
+nav ul li a:hover {
+    background-color: #39b474;
+}
+
+h2 {
+    text-align: center;
+    font-size: 1.6rem;
+    margin: 35px auto;
+    color: #2c3e50;
+}
+
+/* 이미지 스타일 */
+#productImage {
+    display: block;
+    margin: 20px auto;
+    max-width: 100%;
+    max-height: 400px;
+    border: 5px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 테이블 컨테이너 스타일 */
+#table-container {
+    width: 95%; /* 컨테이너 너비 */
+    max-height: 550px; /* 최대 높이 설정 */
+    overflow-y: auto; /* 세로 스크롤 활성화 */
+    margin: 20px auto;
+    border: 1px solid #ddd; /* 테두리 */
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 박스 그림자 */
+}
+
+/* 테이블 스타일 */
+table {
+    width: 100%; /* 테이블 폭을 컨테이너 폭에 맞춤 */
+    border-collapse: collapse;
+    background-color: #fff;
+}
+
+thead {
+    position: sticky; /* 헤더 고정 */
+    top: 0;
+    background-color: #007bff; /* 헤더 배경색 */
+    color: white;
+    z-index: 1;
+}
+
+th,
+td {
+    text-align: center;
+    border: 1px solid #ddd;
+    word-wrap: break-word; /* 긴 텍스트 줄바꿈 처리 */
+    white-space: normal; /* 가로 스크롤 방지 */
+}
+
+th {
+    padding: 12px;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+td {
+    padding: 3px 10px;
+}
+
+tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* 버튼 스타일 */
+button {
+    padding: 8px 16px;
+    margin: 5px;
+    font-size: 0.9rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    transform: scale(1.05);
+}
+
+button:active {
+    transform: scale(1);
+}
+
+button:first-child {
+    background-color: #28a745;
+    color: white;
+}
+
+button:first-child:hover {
+    background-color: #218838;
+}
+
+button:last-child {
+    background-color: #dc3545;
+    color: white;
+}
+
+button:last-child:hover {
+    background-color: #c82333;
+}
+
+footer {
+    text-align: center;
+    margin-top: 40px;
+    padding: 10px;
+    font-size: 0.9rem;
+    color: #aaa;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 2rem;
+    }
+
+    table {
+        font-size: 0.9rem;
+    }
+
+    button {
+        padding: 6px 12px;
+    }
+}

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Inspection Page</title>
+
+        <!-- 구글 폰트 임베드 -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+            rel="stylesheet"
+        />
+
+        <!-- CSS -->
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='css/inspection.css') }}"
+        />
+    </head>
+    <body>
+        <header>
+            <h1 id="Logo">PickO</h1>
+            <nav>
+                <ul>
+                    <li><a href="/">Main</a></li>
+                    <li><a href="/statistics">Statistics</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <h2>You can check Raspberry PICO maunually here.</h2>
+
+        <main>
+            <div id="load-image">
+                <img
+                    id="productImage"
+                    style="
+                        display: none;
+                        max-width: 400px;
+                        border: 1px solid #ccc;
+                    "
+                    alt="Product Image"
+                />
+            </div>
+
+            <div id="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product Number</th>
+                            <th>BOOTSEL</th>
+                            <th>USB</th>
+                            <th>CHIPSET</th>
+                            <th>OSCILLATOR</th>
+                            <th>RASPBERRY PICO</th>
+                            <th>HOLE</th>
+                            <th>Prediction</th>
+                            <th>Actual</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in data %}
+                        <tr>
+                            <td>
+                                <a href="#" onclick="showImage('{{ row[0] }}')"
+                                    >{{ row[0] }}</a
+                                >
+                            </td>
+                            <td>{{ row[1] }}</td>
+                            <td>{{ row[2] }}</td>
+                            <td>{{ row[3] }}</td>
+                            <td>{{ row[4] }}</td>
+                            <td>{{ row[5] }}</td>
+                            <td>{{ row[6] }}</td>
+                            <td class="prediction">{{ row[7] }}</td>
+                            <td class="actual">{{ row[8] }}</td>
+                            <td>
+                                <button
+                                    onclick="updateActual('{{ row[0] }}', 'Pass')"
+                                >
+                                    Pass
+                                </button>
+                                <button
+                                    onclick="updateActual('{{ row[0] }}', 'Fail')"
+                                >
+                                    Fail
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </main>
+
+        <footer>&copy; 2024 PickO Inc. All rights reserved.</footer>
+
+        <script>
+            function updateActual(productNum, status) {
+                fetch("/update_actual", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
+                    body: new URLSearchParams({
+                        product_num: productNum,
+                        actual_status: status,
+                    }),
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        if (data.success) {
+                            alert(`Product ${productNum} marked as ${status}`);
+                            location.reload(); // 페이지 새로고침
+                        } else {
+                            alert("Failed to update product status.");
+                        }
+                    });
+            }
+
+            function showImage(productNum) {
+                fetch(`/get_image/${productNum}`)
+                    .then((response) => response.json())
+                    .then((data) => {
+                        if (data.image_url) {
+                            const img = document.getElementById("productImage");
+                            img.src = data.image_url;
+                            img.style.display = "block";
+                        } else {
+                            alert("Image not found.");
+                        }
+                    });
+            }
+
+            // 색상 변경 함수
+            document.addEventListener("DOMContentLoaded", function () {
+                document
+                    .querySelectorAll(".prediction, .actual")
+                    .forEach((cell) => {
+                        const text = cell.textContent.trim().toLowerCase();
+                        if (text === "pass") {
+                            cell.style.backgroundColor = "#28a745"; // 초록색
+                            cell.style.color = "#fff";
+                        } else if (text === "fail") {
+                            cell.style.backgroundColor = "#dc3545"; // 빨간색
+                            cell.style.color = "#fff";
+                        }
+                    });
+            });
+        </script>
+    </body>
+</html>
